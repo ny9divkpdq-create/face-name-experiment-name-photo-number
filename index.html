@@ -348,7 +348,7 @@ function startExperiment() {
   const studentName =
     document.getElementById("studentName").value.trim();
 
-  if (studentNumber === "" \
+    if (studentNumber === "" || studentName === "") {
     alert("学籍番号と名前を入力してください。");
     return;
   }
