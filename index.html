@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>顔と名前の記憶実験（名前＋写真＋数字グループ）</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 40px 20px;
+  background-color: white;
+}
+
+h1 { margin-bottom: 30px; }
+
+#instructions {
+  max-width: 700px;
+  margin: 0 auto 30px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  text-align: left;
+  line-height: 1.8;
+  background-color: #f8f8f8;
+  box-sizing: border-box;
+}
+
+#experiment, #test, #finish { display: none; }
+
+#photo, #testPhoto {
+  width: 300px;
+  height: 300px;
+  max-width: 90vw;
+  max-height: 90vw;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+#name {
+  font-size: 28px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+#studyNumber {
+  font-size: 64px;
+  font-weight: bold;
+  margin-top: 12px;
+  line-height: 1.2;
+}
+
+#timer, #questionNumber {
+  font-size: 20px;
+  margin-top: 20px;
+}
+
+#questionNumber { margin-bottom: 20px; }
+
+#answer, #studentNumber, #studentName {
+  width: 300px;
+  max-width: 90vw;
+  padding: 12px;
+  font-size: 20px;
+  box-sizing: border-box;
+}
+
+#answer { margin-top: 20px; }
+
+button {
+  font-size: 20px;
+  padding: 12px 30px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.input-area { margin-top: 25px; }
+.input-area p { margin-bottom: 8px; }
+.example { font-size: 16px; margin-top: 8px; }
+
+/* ブラウザバック時の赤い警告画面 */
+#backWarning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.82);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#backWarning .warning-box {
+  width: 100%;
+  max-width: 620px;
+  background: #fff;
+  border: 6px solid #8b0000;
+  border-radius: 8px;
+  padding: 28px 22px;
+  box-sizing: border-box;
+  box-shadow: 0 0 30px rgba(139, 0, 0, 0.65);
+}
+
+#backWarning .warning-title {
+  color: #8b0000;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  letter-spacing: 0.04em;
+}
+
+#backWarning .warning-message {
+  color: #8b0000;
+  font-size: clamp(20px, 3.5vw, 28px);
+  font-weight: 900;
+  line-height: 1.8;
+  margin: 0;
+}
+
+#backWarning button {
+  background: #8b0000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  padding: 14px 28px;
+  margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  body { padding: 24px 12px; }
+
+  #photo, #testPhoto {
+    width: min(300px, 85vw);
+    height: min(300px, 85vw);
+  }
+
+  #backWarning .warning-box {
+    padding: 24px 16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 最初の説明画面 -->
+<div id="start">
+  <h1>顔と名前の記憶実験（名前＋写真＋数字グループ）</h1>
+
+  <div id="instructions">
+    <h2>実験について</h2>
+
+    <p>
+      これから10名の顔写真・名前・数字が順番に表示されます。
+      それぞれの顔と名前、数字の組み合わせをできるだけ覚えてください。
+    </p>
+
+    <p>
+      学習が終了した後、顔写真を見て名前を回答する記憶テストを行います。
+      テストでは、顔写真がランダムな順番で表示されます。
+    </p>
+
+    <p>
+      回答はフルネームを完璧に答える必要はありません。
+      覚えている範囲で答えてください。
+      漢字表記が間違っていても構いません。
+      苗字と名前の間の半角スペースは無くても大丈夫です。
+    </p>
+
+    <p>
+      実験中は、できるだけ集中して取り組んでください。
+      一度実験を開始したら絶対に中断しないでください。
+    </p>
+
+    <p>実験の所要時間は約5分です。</p>
+  </div>
+
+  <div class="input-area">
+    <p><strong>学籍番号</strong></p>
+    <input type="text" id="studentNumber"
+      placeholder="学籍番号を入力してください">
+
+    <p class="example">例 5年5組1番 → 5501</p>
+    <p>白鷗高校及び附属中学校以外の方は「その他」と入力してください</p>
+
+    <p><strong>名前</strong></p>
+    <input type="text" id="studentName"
+      placeholder="名前を入力してください">
+  </div>
+
+  <button onclick="startExperiment()">実験開始</button>
+</div>
+
+<!-- 学習画面 -->
+<div id="experiment">
+  <p id="personNumber"></p>
+  <img id="photo" src="" alt="顔写真">
+  <div id="name"></div>
+  <div id="studyNumber"></div>
+  <div id="timer"></div>
+</div>
+
+<!-- 記憶テスト画面 -->
+<div id="test">
+  <h1>記憶テスト</h1>
+  <div id="questionNumber"></div>
+  <p>この人の名前を入力してください。</p>
+  <img id="testPhoto" src="" alt="顔写真">
+  
+  <input type="text" id="answer" placeholder="名前を入力してください">
+  
+  <button onclick="nextQuestion()">次へ</button>
+</div>
+
+<!-- 終了画面 -->
+<div id="finish">
+  <h1>実験終了</h1>
+  <p>これで実験は終了です。</p>
+  <p>ご協力ありがとうございました。タブは消去していただいて構いません。</p>
+</div>
+
+<!-- ブラウザバック時の警告画面 -->
+<div id="backWarning" role="alertdialog"
+  aria-modal="true" aria-labelledby="backWarningTitle">
+  <div class="warning-box">
+    <p id="backWarningTitle" class="warning-title">
+      実験を中断しないでください
+    </p>
+    <p class="warning-message">
+      まだ実験は終了していません。
+      ブラウザの「戻る」操作は行わず、実験に戻ってください。
+    </p>
+    <button type="button" onclick="closeBackWarning()">実験に戻る</button>
+  </div>
+</div>
+
+<script>
+/* 本実験用Googleスプレッドシートへの送信先 */
+const WEB_APP_URL =
+"https://script.google.com/macros/s/AKfycbyms0ROMPc-hb4MwFe-Bd7UbgGXrWKPteRaaj4v2-YcOzCr874S22E82PHK78Ul-NcggA/exec";
+
+/* 実験に使用する10人 */
+const people = [
+  {
+    id: "person01",
+    name: "岡田 綾乃",
+    number: 1,
+    image: "images/person01.jpg"
+  },
+  {
+    id: "person02",
+    name: "林 美穂",
+    number: 2,
+    image: "images/person02.jpg"
+  },
+  {
+    id: "person03",
+    name: "加藤 達也",
+    number: 3,
+    image: "images/person03.jpg"
+  },
+  {
+    id: "person04",
+    name: "増田 正樹",
+    number: 4,
+    image: "images/person04.jpg"
+  },
+  {
+    id: "person05",
+    name: "笠原 光",
+    number: 5,
+    image: "images/person05.jpg"
+  },
+  {
+    id: "person06",
+    name: "本田 健司",
+    number: 6,
+    image: "images/person06.jpg"
+  },
+  {
+    id: "person07",
+    name: "鈴木 千鶴",
+    number: 7,
+    image: "images/person07.jpg"
+  },
+  {
+    id: "person08",
+    name: "浅野 俊彦",
+    number: 8,
+    image: "images/person08.jpg"
+  },
+  {
+    id: "person09",
+    name: "原 裕子",
+    number: 9,
+    image: "images/person09.jpg"
+  },
+  {
+    id: "person10",
+    name: "須貝 みゆき",
+    number: 10,
+    image: "images/person10.jpg",
+  }
+];
+
+const displayTime = 20;
+let currentPerson = 0;
+let remainingTime = displayTime;
+let timer;
+let currentQuestion = 0;
+let testPeople = [];
+let answers = Array(people.length).fill("");
+let experimentStarted = false;
+
+/* ブラウザバック対策 */
+function protectBackButton() {
+  history.pushState({ experimentGuard: true }, "", location.href);
+}
+
+function closeBackWarning() {
+  document.getElementById("backWarning").style.display = "none";
+}
+
+window.addEventListener("popstate", function () {
+  if (experimentStarted) {
+    document.getElementById("backWarning").style.display = "flex";
+    protectBackButton();
+  }
+});
+
+/* 再読み込み・タブを閉じる操作への標準警告 */
+window.addEventListener("beforeunload", function (event) {
+  if (experimentStarted) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
+
+/* 実験開始 */
+function startExperiment() {
+  const studentNumber =
+    document.getElementById("studentNumber").value.trim();
+  const studentName =
+    document.getElementById("studentName").value.trim();
+
+  if (studentNumber === "" \
+    alert("学籍番号と名前を入力してください。");
+    return;
+  }
+
+  experimentStarted = true;
+  protectBackButton();
+
+  document.getElementById("start").style.display = "none";
+  document.getElementById("experiment").style.display = "block";
+
+  currentPerson = 0;
+  showPerson();
+  clearInterval(timer);
+  timer = setInterval(countDown, 1000);
+}
+
+/* 学習画面に人物・名前を表示 */
+function showPerson() {
+  const person = people[currentPerson];
+
+  document.getElementById("photo").src = person.image;
+  document.getElementById("name").textContent = person.name;
+  document.getElementById("studyNumber").textContent = person.number;
+  document.getElementById("personNumber").textContent =
+    "人物 " + (currentPerson + 1) + " / " + people.length;
+
+  remainingTime = displayTime;
+  document.getElementById("timer").textContent =
+    "次の人物まで：" + remainingTime + "秒";
+}
+
+/* カウントダウン */
+function countDown() {
+  remainingTime--;
+
+  document.getElementById("timer").textContent =
+    "次の人物まで：" + remainingTime + "秒";
+
+  if (remainingTime <= 0) {
+    currentPerson++;
+
+    if (currentPerson >= people.length) {
+      clearInterval(timer);
+      startTest();
+      return;
+    }
+
+    showPerson();
+  }
+}
+
+/* 記憶テスト開始・出題順をランダムにする */
+function startTest() {
+  document.getElementById("experiment").style.display = "none";
+  document.getElementById("test").style.display = "block";
+
+  testPeople = [...people];
+
+  for (let i = testPeople.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [testPeople[i], testPeople[j]] =
+      [testPeople[j], testPeople[i]];
+  }
+
+  currentQuestion = 0;
+  answers = Array(people.length).fill("");
+  showQuestion();
+}
+
+/* 問題を表示。テスト時にはエピソードを表示しない */
+function showQuestion() {
+  const person = testPeople[currentQuestion];
+
+  document.getElementById("testPhoto").src = person.image;
+  document.getElementById("questionNumber").textContent =
+    "問題 " + (currentQuestion + 1) + " / " + testPeople.length;
+
+  document.getElementById("answer").value = "";
+  document.getElementById("answer").focus();
+}
+
+/* 次の問題 */
+function nextQuestion() {
+  const person = testPeople[currentQuestion];
+  const answer = document.getElementById("answer").value.trim();
+
+  /* 表示順はランダムでも、回答は元の人物ID順に保存 */
+  const originalIndex = people.findIndex(function (item) {
+    return item.id === person.id;
+  });
+  answers[originalIndex] = answer;
+
+  currentQuestion++;
+
+  if (currentQuestion >= testPeople.length) {
+    document.getElementById("test").style.display = "none";
+    experimentStarted = false;
+    clearInterval(timer);
+
+    sendAnswers();
+    document.getElementById("finish").style.display = "block";
+    return;
+  }
+
+  showQuestion();
+}
+
+/* Googleスプレッドシートへ回答を送信 */
+function sendAnswers() {
+  const studentNumber =
+    document.getElementById("studentNumber").value.trim();
+  const studentName =
+    document.getElementById("studentName").value.trim();
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+      studentNumber: studentNumber,
+      studentName: studentName,
+      answers: answers
+    })
+  });
+}
+</script>
+
+</body>
+</html>
