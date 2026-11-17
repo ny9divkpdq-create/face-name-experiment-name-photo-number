@@ -57,7 +57,7 @@
     <h1 style="text-align:center;margin-bottom:30px;">本実験(名前＋写真＋数字)</h1>
     <h2>実験について</h2>
     <p>これから10名の顔写真・名前・数字が一覧で表示されます。それぞれの顔と名前をできるだけ覚えてください。</p>
-    <p><strong>学習画面は200秒で自動的に終了し、記憶テスト画面に切り替わります。時間内に覚えてください。</strong></p>
+    <p><strong>学習画面は150秒で自動的に終了し、記憶テスト画面に切り替わります。時間内に覚えてください。</strong></p>
     <p>学習が終了した後、顔写真を見て名前を回答する記憶テストを行います。テストでは、顔写真がランダムな順番で表示されます。</p>
     <p>回答はフルネームを完璧に答える必要はありません。覚えている範囲で答えてください。漢字表記が間違っていても構いません。苗字と名前の間の半角スペースは無くても大丈夫です。</p>
     <p>実験中は、できるだけ集中して取り組んでください。一度実験を開始したら絶対に中断しないでください。</p>
@@ -74,8 +74,8 @@
   <section id="study" class="panel hidden">
     <h2>学習画面</h2>
     <p>10名の顔写真・名前が表示されます。それぞれの顔と名前をできるだけ覚えてください。</p>
-    <p id="studyTimer" style="font-size:1.2rem;font-weight:800;color:#8b0000;text-align:center;">残り時間：200秒</p>
-    <p class="note" style="text-align:center;">200秒になると自動的に記憶テストへ切り替わります。</p>
+    <p id="studyTimer" style="font-size:1.2rem;font-weight:800;color:#8b0000;text-align:center;">残り時間：150秒</p>
+    <p class="note" style="text-align:center;">150秒になると自動的に記憶テストへ切り替わります。</p>
     <div id="studyPeople" class="people"></div>
     
   </section>
@@ -163,7 +163,7 @@ $("returnBtn").addEventListener("click", closeBackWarning);
 function startStudyTimer() {
   clearInterval(studyTimerInterval);
   clearTimeout(studyTimeout);
-  studyEndsAt = Date.now() + 200000;
+  studyEndsAt = Date.now() + 150000;
   const update = () => {
     const remaining = Math.max(0, Math.ceil((studyEndsAt - Date.now()) / 1000));
     $("studyTimer").textContent = `残り時間：${remaining}秒`;
@@ -173,7 +173,7 @@ function startStudyTimer() {
   studyTimeout = setTimeout(() => {
     clearInterval(studyTimerInterval);
     beginTest();
-  }, 200000);
+  }, 150000);
 }
 function beginTest() {
   clearInterval(studyTimerInterval);
